@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Chat</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: white;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      color: #000000;
+      margin-bottom: 20px;
+    }
+
+    #chat-container {
+      width: 100%;
+      max-width: 700px;
+      background: rgb(255, 255, 255);
+      border: 2px solid rgb(66, 1, 1);
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      gap: 15px;
+      box-sizing: border-box;
+    }
+
+    #chat-messages {
+      flex: 1;
+      max-height: 300px;
+      overflow-y: auto;
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }
+
+    .message {
+      margin: 8px 0;
+      padding: 10px 12px;
+      border-radius: 10px;
+      max-width: 80%;
+      word-wrap: break-word;
+    }
+    .user { background: #262726; color: white; margin-left: auto; }
+    .bot { background: #eee; color: #111; }
+
+    #input-area {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    #chat-input {
+      width: 100%;
+      font-size: 16px;
+      padding: 14px;
+      border-radius: 8px;
+      border: 2px solid #262726;
+      outline: none;
+      box-sizing: border-box;
+    }
+
+    #send-btn {
+      background: rgb(66, 1, 1);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 120px;
+      align-self: flex-end;
+    }
+
+    #prompt-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .prompt-btn {
+      flex: 1;
+      background: #262726;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 15px;
+      transition: background 0.5s;
+    }
+
+    .prompt-btn:hover {
+      background: #ff2e2e;
+    }
+
+    .bot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    }
+
+    .bot span {
+    flex: 1;
+    }
+
+    .copy-btn {
+    background: #dadada;
+    border: none;
+    color: rgb(0, 0, 0);
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-left: 10px;
+    transition: background 0.2s;
+    flex-shrink: 0;
+    }
+
+    .copy-btn:hover {
+    background: #b8b8b8;
+    }
+
+  </style>
+</head>
+<body>
+  <h1>Ask our AI anything</h1>
+
+  <div id="chat-container">
+    <div id="chat-messages">
+      <div class="message bot">Welcome to AI-15 👋...</div>
+    </div>
+
+    <div id="input-area">
+      <input id="chat-input" type="text" placeholder="Ask away..." />
+      <div id="prompt-buttons">
+        <button class="prompt-btn"></button>
+        <button class="prompt-btn"></button>
+        <button class="prompt-btn"></button>
+        <button class="prompt-btn"></button>
+      </div>
+      <button id="send-btn">Send</button>
+    </div>
+  </div>
+
+  <script>
+    const input = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-btn');
+    const messages = document.getElementById('chat-messages');
+    const promptBtns = document.querySelectorAll('.prompt-btn');
+
+    const prompts = [
+      ["What's the best way to start coding?", "Explain AI in simple terms", "How does machine learning work?", "Give me a fun fact about space"],
+      ["Tell me a joke", "What are some good study tips?", "What’s the weather like in Colombia?", "Who invented computers?"],
+      ["Write a short poem about coffee", "Summarize World War II", "Why is the sky blue?", "What’s new in tech today?"],
+      ["How to make pizza at home", "Best productivity habits?", "Why do cats purr?", "Explain blockchain simply"],
+      [],
+      [],
+    ];
+
+    //Rotate prompts every 10 seconds
+    setInterval(() => {
+      promptBtns.forEach((btn, i) => {
+        const options = prompts[i];
+        const current = btn.textContent;
+        let next = options[Math.floor(Math.random() * options.length)];
+        btn.textContent = next === current ? options[(options.indexOf(current)+1)%options.length] : next;
+      });
+    }, 10000);
+
+    //Set initial text for each button
+    promptBtns.forEach((btn, i) => btn.textContent = prompts[i][0]);
+
+    //Handle message sending
+    sendBtn.onclick = sendMessage;
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
+    promptBtns.forEach(btn => btn.onclick = () => { input.value = btn.textContent; sendMessage(); });
+
+    function appendMessage(role, text) {
+        const div = document.createElement('div');
+        div.className = `message ${role}`;
+
+        const messageText = document.createElement('span');
+        messageText.textContent = text;
+        div.appendChild(messageText);
+
+        //Add a copy button to bot responses
+        if (role === 'bot') {
+            const copyBtn = document.createElement('button');
+            copyBtn.textContent = 'Copy';
+            copyBtn.className = 'copy-btn';
+            copyBtn.onclick = () => {
+                navigator.clipboard.writeText(text);
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => copyBtn.textContent = 'Copy', 1500);
+            };
+            div.appendChild(copyBtn);
+        }
+
+        messages.appendChild(div);
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+
+
+    function sendMessage() {
+      const text = input.value.trim();
+      if (!text) return;
+      appendMessage('user', text);
+      input.value = '';
+      setTimeout(() => {
+        appendMessage('bot', getReply(text));
+      }, 500);
+    }
+
+    function getReply(msg) {
+      msg = msg.toLowerCase();
+      if (msg.includes('hello')) return 'Hey there!';
+      if (msg.includes('bye')) return 'Goodbye 👋';
+      return "I'm thinking... but this is just a demo bot 😊";
+    }
+  </script>
+</body>
+</html>
