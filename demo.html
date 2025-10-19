@@ -219,7 +219,7 @@
 
 
 
-    function sendMessage() {
+    async function sendMessage() {
       const text = input.value.trim();
       if (!text) return;
       appendMessage('user', text);
