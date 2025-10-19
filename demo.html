@@ -225,7 +225,9 @@
       appendMessage('user', text);
       input.value = '';
       setTimeout(() => {
-        appendMessage('bot', getReply(text));
+        reply = await getReply(text);
+        console.log(reply);
+        appendMessage('bot', reply);
       }, 500);
     }
 
