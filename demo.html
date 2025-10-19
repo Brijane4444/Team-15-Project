@@ -240,6 +240,7 @@
                         max_token: 1000,
                     });
       const reply = await response.json();
+      console.log(reply);
       const bestReply = reply.choices[0].message.content;
       return bestReply;
     }
