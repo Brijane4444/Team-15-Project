@@ -219,41 +219,37 @@
 
 
 
-    async function sendMessage() {
+    function sendMessage() {
       const text = input.value.trim();
-      if (!text) return;
+      if (text) { 
       appendMessage('user', text);
       input.value = '';
-      setTimeout(() => {
-        reply = await getReply(text);
-        console.log(reply);
-        appendMessage('bot', reply);
-      }, 500);
+      getReply(text);
+      }
     }
 
     async function getReply(msg) {
-      const apiKey = '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';
-      const modelId = 'HuggingFaceTB/SmolLM2-135M';
-      const apiLocation = 'https://api-inference.huggingface.co/models/${modelId}';
-      const response = await fetch(apiLocation, {
-                        headers: {Authorization: 'Bearer ${apiKey}', 'Content-Type': 'application/json',}, 
+      const apiKey = "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";
+      const apiLocation = "https://api.openai.com/v1/chat/completions";
+
+      try{
+        const reply = await fetch(apiLocation, {
+                        headers: {Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json',}, 
                         method: 'POST',
-                        body: JSON.stringify(msg),
-                        max_token: 1000,
+                        body: JSON.stringify({model: "gpt-4.1-nano", messages: [{role:'user', content: msg}], max_tokens: 1000}),
                     });
-      const reply = await response.json();
-      console.log(reply);
-      const bestReply = reply.choices[0].message.content;
-      return bestReply;
+
+        const toReturn = await reply.json();
+        data = toReturn.choices[0].message.content;
+        console.log(data);
+        appendMessage('bot', data);
+      }
+      catch(error){
+        return "An error has occured";
+        console.error("An error has occured", error);
+      }
     }
-    /*
-    function getReply(msg) {
-      msg = msg.toLowerCase();
-      if (msg.includes('hello')) return 'Hey there!';
-      if (msg.includes('bye')) return 'Goodbye 👋';
-      return "I'm thinking... but this is just a demo bot 😊";
-    }
-    */
+    
   </script>
 </body>
 </html>
