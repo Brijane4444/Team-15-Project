@@ -229,7 +229,7 @@
     }
 
     async function getReply(msg) {
-      const apiKey = "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";
+      const apiKey = process.env.API_KEY;
       const apiLocation = "https://api.openai.com/v1/chat/completions";
 
       try{
