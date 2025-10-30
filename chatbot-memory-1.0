@@ -1,0 +1,22 @@
+function saveChat() {
+  const chatData = messages.innerHTML; // Save all message HTML
+  localStorage.setItem('chatHistory', chatData);
+}
+
+function loadChat() {
+  const saved = localStorage.getItem('chatHistory');
+  if (saved) {
+    messages.innerHTML = saved;
+    messages.scrollTop = messages.scrollHeight;
+    
+    // Reattach copy button events after loading from storage
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.onclick = () => {
+        const text = btn.parentElement.querySelector('span').textContent;
+        navigator.clipboard.writeText(text);
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = 'Copy', 1500);
+      };
+    });
+  }
+}
