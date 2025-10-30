@@ -149,6 +149,7 @@
 
     <div id="input-area">
       <input id="chat-input" type="text" placeholder="Ask away..." />
+      <input id="file-input" name="file-data" type="file" accept=".doc,.docx,.xml,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"/>
       <div id="prompt-buttons">
         <button class="prompt-btn"></button>
         <button class="prompt-btn"></button>
@@ -164,6 +165,7 @@
     const sendBtn = document.getElementById('send-btn');
     const messages = document.getElementById('chat-messages');
     const promptBtns = document.querySelectorAll('.prompt-btn');
+    const fileinput = document.getElementById('file-input');
 
     const prompts = [
       ["What's the best way to start coding?", "Explain AI in simple terms", "How does machine learning work?", "Give me a fun fact about space"],
@@ -221,7 +223,11 @@
 
     function sendMessage() {
       const text = input.value.trim();
-      if (text) { 
+      const file = fileinput.value;
+      if(file && text){
+        getReply(file + text);
+      }
+      else if (text) { 
       appendMessage('user', text);
       input.value = '';
       getReply(text);
