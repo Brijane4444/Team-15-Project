@@ -1,0 +1,11 @@
+name: Chatbot API
+on: 
+  push:
+    branches: [main]
+jobs:
+  get_api_key:
+    runs-on: ubuntu-latest
+    steps:
+      - name: get secret api key as environment variable
+        env:
+          API_KEY: ${{secrets.API_KEY}}
