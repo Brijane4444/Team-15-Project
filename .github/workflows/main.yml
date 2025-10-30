@@ -1,9 +1,11 @@
 name: Chatbot API
-on: 
+on:
   push:
-    branches: [main]
+    branches: ["main"]
+  pull_request: 
+    branches: ["main"]
 jobs:
-  get_api_key:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: get secret api key as environment variable
