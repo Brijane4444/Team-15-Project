@@ -84,6 +84,31 @@
       box-sizing: border-box;
     }
 
+    /* ===== SECTION: FILE UPLOAD + SEND BUTTON ROW ===== */
+    #file-send-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+    #file-input {
+      display: none;
+    }
+    .custom-file-label {
+      background: #262726;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      text-align: center;
+      width: 150px;
+      transition: background 0.3s;
+    }
+    .custom-file-label:hover {
+      background: #ff2e2e;
+    }
+
     #send-btn {
       background: rgb(66, 1, 1);
       color: white;
@@ -156,12 +181,21 @@
 
     <!-- SECTION: INPUT AREA -->
     <div id="input-area">
+      
+      <!--USER TEXT INPUT-->
       <input id="chat-input" type="text" placeholder="Ask away..." />
+      
       <div id="prompt-buttons">
         <button class="summary-btn">Summary</button>
         <button class="bullet-btn">Bullet Points</button>
       </div>
-      <button id="send-btn">Send</button>
+
+      <!--row for file upload + send button-->
+      <div id="file-send-row">
+        <label for ="file-input" class="custom-file-label">Upload File</label>
+        <input type="file" id="file-input" accept=".pdf,.txt" />
+        <button id="send-btn">Send</button>
+      </div>
     </div>
 
   </div>
@@ -176,6 +210,7 @@
   const promptBtns = document.querySelectorAll('.prompt-btn');
   const summaryBtn = document.querySelector('.summary-btn');
   const bulletBtn = document.querySelector('.bullet-btn');
+  const fileInput = document.getElementById('file-input');
 
   // ===== SECTION: WELCOME MESSAGES =====
   window.onload = () => {
@@ -200,6 +235,14 @@
       sendMessage();
   };
 
+  //===== SECTION: FILE UPLOAD HANDLER =====
+  fileInput.addEventListener('change', async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      appendMessage('bot', `📄 Uploaded file: ${file.name}`);
+  });
+          
   // ===== SECTION: FUNCTION appendMessage =====
   function appendMessage(role, text) {
       const div = document.createElement('div');
