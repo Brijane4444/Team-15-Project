@@ -301,7 +301,59 @@
     console.error("An error has occured", error);
    }
   }
+
+  test("appendMessage adds a user message", () => {
+  appendMessage('user', 'Hello!');
+  const msg = document.querySelector('.message.user span');
+  expect(msg.textContent).toBe('Hello!');
+});
+
+test("appendMessage adds a bot message with a copy button", () => {
+  appendMessage('bot', 'Hi, I am the bot.');
+  const msg = document.querySelector('.message.bot span');
+  const copyBtn = document.querySelector('.message.bot .copy-btn');
+  expect(msg.textContent).toBe('Hi, I am the bot.');
+  expect(copyBtn).not.toBeNull();
+});
+
+test("sendMessage adds user message and clears input", () => {
+  document.getElementById('chat-input').value = "Test message";
+  sendMessage();
+  
+  const msg = document.querySelector('.message.user span');
+  expect(msg.textContent).toBe("Test message");
+  expect(document.getElementById('chat-input').value).toBe("");
+});
+
+  <!-- ===== Unit Testing ===== -->
+    
+  test("appendMessage adds a user message", () => {
+  appendMessage('user', 'Hello!');
+  const msg = document.querySelector('.message.user span');
+  expect(msg.textContent).toBe('Hello!');
+});
+
+test("appendMessage adds a bot message with a copy button", () => {
+  appendMessage('bot', 'Hi, I am the bot.');
+  const msg = document.querySelector('.message.bot span');
+  const copyBtn = document.querySelector('.message.bot .copy-btn');
+  expect(msg.textContent).toBe('Hi, I am the bot.');
+  expect(copyBtn).not.toBeNull();
+});
+
+test("sendMessage adds user message and clears input", () => {
+  document.getElementById('chat-input').value = "Test message";
+  sendMessage();
+  
+  const msg = document.querySelector('.message.user span');
+  expect(msg.textContent).toBe("Test message");
+  expect(document.getElementById('chat-input').value).toBe("");
+});
+
 </script>
 <!-- ===== JS END ===== -->
 </body>
 </html>
+
+
+
