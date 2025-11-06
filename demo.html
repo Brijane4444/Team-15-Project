@@ -272,12 +272,31 @@
   // ===== SECTION: FUNCTION sendMessage =====
   function sendMessage() {
     const text = input.value.trim();
-    if (text) { 
+    const file = fileInput.value;
+    if(file && text) {
+      appendMessage('user', text);
+      getFileContent(text);
+      input.value = '';
+    }
+    else if (text) { 
       appendMessage('user', text);
       input.value = '';
       getReply(text);
     }
   }
+
+  //===== Reads in file data and sends it to the API =====
+  async function getFileContent(text){
+      const inputData = fileinput.files[0];
+      const reader = new FileReader();
+
+      reader.onload = function(e){
+        const content = e.target.result;
+        //appendMessage('bot', content);
+        getReply(content + text);
+      }
+      reader.readAsText(inputData);
+    }
 
   // ===== SECTION: FUNCTION getReply (API call) =====
   async function getReply(msg) {
