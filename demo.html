@@ -207,7 +207,7 @@
   const input = document.getElementById('chat-input');
   const sendBtn = document.getElementById('send-btn');
   const messages = document.getElementById('chat-messages');
-  const promptBtns = document.querySelectorAll('.prompt-btn');
+ // const promptBtns = document.querySelectorAll('.prompt-btn'); **I don't think this is needed but can't test today**
   const summaryBtn = document.querySelector('.summary-btn');
   const bulletBtn = document.querySelector('.bullet-btn');
   const fileInput = document.getElementById('file-input');
@@ -281,26 +281,25 @@
 
   // ===== SECTION: FUNCTION getReply (API call) =====
   async function getReply(msg) {
-    const apiKey = process.env.API_KEY;
+    //const apiKey = process.env.API_KEY; **this needs to be handled in the backend!
     const apiLocation = "https://api.openai.com/v1/chat/completions";
 
-    try {
-      const reply = await fetch(apiLocation, {
-          headers: {Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json'}, 
-          method: 'POST',
-          body: JSON.stringify({model: "gpt-4.1-nano", messages: [{role:'user', content: msg}], max_tokens: 1000}),
-      });
+  try {
+    const reply = await fetch(apiLocation, {
+      headers: {Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json'}, 
+      method: 'POST',
+      body: JSON.stringify({model: "gpt-4.1-nano", messages: [{role:'user', content: msg}], max_tokens: 1000}),
+    });
 
-        const toReturn = await reply.json();
-        data = toReturn.choices[0].message.content;
-        console.log(data);
-        appendMessage('bot', data);
-      }
-      catch(error){
-        return "An error has occured";
-        console.error("An error has occured", error);
-      }
-    }
+     const toReturn = await reply.json();
+     data = toReturn.choices[0].message.content;
+     console.log(data);
+     appendMessage('bot', data);
+     }
+ catch(error){
+    return "An error has occured";
+    console.error("An error has occured", error);
+   }
   }
 </script>
 <!-- ===== JS END ===== -->
