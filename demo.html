@@ -230,6 +230,7 @@
 
     async function getReply(msg) {
       const apiKey = process.env.API_KEY;
+      console.log(apiKey);
       const apiLocation = "https://api.openai.com/v1/chat/completions";
 
       try{
