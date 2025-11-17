@@ -290,6 +290,9 @@
   const bulletBtn = document.querySelector('.bullet-btn');
   const fileInput = document.getElementById('file-input');
 
+  let fileUploaded = false; // Track if a file has been uploaded
+
+
   // ===== SECTION: WELCOME MESSAGES =====
   window.onload = () => {
     appendMessage('bot', "👋 Welcome to AI Study Chatbot. I am here to help you ace your study material.");
@@ -303,6 +306,7 @@
   sendBtn.onclick = sendMessage;
   input.addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
 
+
   // Prompt buttons set predefined messages
   summaryBtn.onclick = () => {
       input.value = "Summarize the following content in a concise manner.";
@@ -315,10 +319,40 @@
 
   //===== SECTION: FILE UPLOAD HANDLER =====
   fileInput.addEventListener('change', async (event) => {
-      const file = event.target.files[0];
-      if (!file) return;
+    const file = event.target.files[0];
+    if (!file) return;
 
-      appendMessage('bot', `📄 Uploaded file: ${file.name}`);
+    // If a document has already been uploaded, prompt user
+    if (fileUploaded) {
+      appendMessage('bot', "📚 You’ve already uploaded a document. Would you like to end this session or upload a new one?");
+      const endBtn = document.createElement('button');
+      endBtn.textContent = "End Session";
+      endBtn.className = "prompt-btn";
+      endBtn.onclick = () => {
+        appendMessage('bot', "✅ Session ended. Thank you for using the Study Chatbot! Refresh the page to start a new one.");
+        disableInputs();
+      };
+
+      const newUploadBtn = document.createElement('button');
+      newUploadBtn.textContent = "Upload Another Document";
+      newUploadBtn.className = "prompt-btn";
+      newUploadBtn.onclick = () => {
+        appendMessage('bot', "📄 Great! Please upload your new document to continue.");
+        fileUploaded = false; // Reset so user can upload again
+      };
+
+      const buttonRow = document.createElement('div');
+      buttonRow.style.display = "flex";
+      buttonRow.style.gap = "10px";
+      buttonRow.appendChild(endBtn);
+      buttonRow.appendChild(newUploadBtn);
+      messages.appendChild(buttonRow);
+      messages.scrollTop = messages.scrollHeight;
+      return;
+    }
+
+    appendMessage('bot', `📄 Document received: ${file.name}. I’m ready to help you analyze it!`);
+    fileUploaded = true;
   });
           
   // ===== SECTION: FUNCTION appendMessage =====
@@ -350,7 +384,7 @@
   // ===== SECTION: FUNCTION sendMessage =====
   function sendMessage() {
     const text = input.value.trim();
-    const file = fileInput.value;
+    const file = fileInput.files[0];
     if(file && text) {
       appendMessage('user', text);
       getFileContent(text);
@@ -378,22 +412,41 @@ themeToggle.addEventListener("click", () => {
 
   
   //===== Reads in file data and sends it to the API =====
-  async function getFileContent(text){
-      const inputData = fileInput.files[0];
-      const reader = new FileReader();
+  async function getFileContent(text) {
+    const file = fileInput.files[0];
+    if (!file) return;
 
-      reader.onload = function(e){
-        const content = e.target.result;
-        //appendMessage('bot', content);
-        getReply(content + text);
-      }
-      reader.readAsText(inputData);
+    const reader = new FileReader();
+
+    reader.onload = function (e) {
+        let content = e.target.result;
+
+        // Handle PDF safely using Base64
+        if (file.type === "application/pdf") {
+            content = "[PDF Document Encoded]\n" + btoa(content);
+        }
+        if (!fileInput.files[0] && text.trim() === "") {
+    appendMessage('bot', "⚠️ Please upload a document before choosing an option.");
+    return;
+}
+
+        getReply(content + "\n\n" + text);
+    };
+
+    // Read files correctly
+    if (file.type === "application/pdf") {
+        reader.readAsBinaryString(file); // PDFs must NOT use readAsText()
+    } else {
+        reader.readAsText(file);
     }
+}
+
+  
 
   // ===== SECTION: FUNCTION getReply (API call) =====
   async function getReply(msg) {
-    //const apiKey = process.env.API_KEY; **this needs to be handled in the backend!
-    const apiLocation = "https://api.openai.com/v1/chat/completions";
+    //const apiKey = 
+      const apiLocation = "https://api.openai.com/v1/chat/completions";
 
   try {
     const reply = await fetch(apiLocation, {
@@ -413,58 +466,7 @@ themeToggle.addEventListener("click", () => {
    }
   }
 
-  test("appendMessage adds a user message", () => {
-  appendMessage('user', 'Hello!');
-  const msg = document.querySelector('.message.user span');
-  expect(msg.textContent).toBe('Hello!');
-});
-
-test("appendMessage adds a bot message with a copy button", () => {
-  appendMessage('bot', 'Hi, I am the bot.');
-  const msg = document.querySelector('.message.bot span');
-  const copyBtn = document.querySelector('.message.bot .copy-btn');
-  expect(msg.textContent).toBe('Hi, I am the bot.');
-  expect(copyBtn).not.toBeNull();
-});
-
-test("sendMessage adds user message and clears input", () => {
-  document.getElementById('chat-input').value = "Test message";
-  sendMessage();
-  
-  const msg = document.querySelector('.message.user span');
-  expect(msg.textContent).toBe("Test message");
-  expect(document.getElementById('chat-input').value).toBe("");
-});
-
-  <!-- ===== Unit Testing ===== -->
-    
-  test("appendMessage adds a user message", () => {
-  appendMessage('user', 'Hello!');
-  const msg = document.querySelector('.message.user span');
-  expect(msg.textContent).toBe('Hello!');
-});
-
-test("appendMessage adds a bot message with a copy button", () => {
-  appendMessage('bot', 'Hi, I am the bot.');
-  const msg = document.querySelector('.message.bot span');
-  const copyBtn = document.querySelector('.message.bot .copy-btn');
-  expect(msg.textContent).toBe('Hi, I am the bot.');
-  expect(copyBtn).not.toBeNull();
-});
-
-test("sendMessage adds user message and clears input", () => {
-  document.getElementById('chat-input').value = "Test message";
-  sendMessage();
-  
-  const msg = document.querySelector('.message.user span');
-  expect(msg.textContent).toBe("Test message");
-  expect(document.getElementById('chat-input').value).toBe("");
-});
-
 </script>
 <!-- ===== JS END ===== -->
 </body>
 </html>
-
-
-
