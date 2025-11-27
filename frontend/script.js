@@ -88,10 +88,10 @@
   }
 
   // ===== SECTION: FUNCTION getReply (API call) =====
-  
+  const API_BASE_URL = 'http://localhost:8080';
   async function getReply(msg) {
     try{
-      const response = await fetch('http://localhost:8080/api/get-reply', {
+      const response = await fetch(`${API_BASE_URL}/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -100,12 +100,12 @@
       });
 
       const data = await response.json();
-      const replyText = data.reply || "Sorry, I couldn't generate a response.";
+      const replyText = data.reply || "(no reply from backend).";
       console.log(replyText);
       appendMessage('bot', replyText);
     } catch (error) {
       console.error('Error fetching reply:', error);
-      appendMessage('bot', 'An error has occurred while fetching the reply.');
+      appendMessage('bot', 'Error talking to the backend.');
     }
   //** Temporary placeholder reply until backend is implemented} 
   //async function getReply(msg) {
