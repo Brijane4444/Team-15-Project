@@ -88,9 +88,29 @@
   }
 
   // ===== SECTION: FUNCTION getReply (API call) =====
+  
   async function getReply(msg) {
+    try{
+      const response = await fetch('http://localhost:8080/api/get-reply', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: msg }),
+      });
+
+      const data = await response.json();
+      const replyText = data.reply || "Sorry, I couldn't generate a response.";
+      console.log(replyText);
+      appendMessage('bot', replyText);
+    } catch (error) {
+      console.error('Error fetching reply:', error);
+      appendMessage('bot', 'An error has occurred while fetching the reply.');
+    }
+  //** Temporary placeholder reply until backend is implemented} 
+  //async function getReply(msg) {
     //const apiKey = process.env.API_KEY; **this needs to be handled in the backend!
-    const apiLocation = "https://api.openai.com/v1/chat/completions";
+   /* const apiLocation = "https://api.openai.com/v1/chat/completions";
 
   try {
     const reply = await fetch(apiLocation, {
@@ -107,5 +127,8 @@
  catch(error){
     return "An error has occured";
     console.error("An error has occured", error);
-   }
+   }*
+
+   **/
+
   }

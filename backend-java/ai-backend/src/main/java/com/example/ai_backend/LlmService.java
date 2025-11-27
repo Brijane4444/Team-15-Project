@@ -4,7 +4,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.core.ParameterizedTypeReference;
 import reactor.core.publisher.Mono;
+import java.util.Objects;
 
 import java.util.Map;
 
@@ -17,7 +19,8 @@ public class LlmService {
     private final WebClient client;
 
     /*Spring injects the value of the OPENAI_API_KEY property here.
-     NEED TO SET UP AN environment variable OPENAI_API_KEY on the individual machine.*/
+     NEED TO SET UP AN environment variable OPENAI_API_KEY on the individual machine.
+     will add this step into the README file later on*/
     public LlmService(@Value("${OPENAI_API_KEY}") String apiKey) {
         this.client = WebClient.builder()
                 .baseUrl("https://api.openai.com/v1/chat/completions")
@@ -37,13 +40,13 @@ public class LlmService {
                 "max_tokens", 500
         );
 
-        Map response = client.post()
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(body)
-                .retrieve()
-                .bodyToMono(Map.class)
-                .onErrorResume(e -> Mono.just(Map.of("error", e.getMessage())))
-                .block();
+        Map<String, Object> response = client.post()
+            .contentType(Objects.requireNonNull(MediaType.APPLICATION_JSON))
+            .bodyValue(Objects.requireNonNull(body))
+            .retrieve()
+            .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+            .onErrorResume(e -> Mono.just(Map.<String, Object>of("error", e.getMessage())))
+            .block();
 
         return extractContent(response);
     }
@@ -52,7 +55,8 @@ public class LlmService {
      question + fileContent combined into a structured prompt.*/
     public String analyze(String question, String fileContent) {
         String combinedPrompt = """
-                You are a study assistant. You will receive file content and a question.
+                You are a study assistant who has a professional tone.
+                You will receive file content and a request to summarize or provide bullet point
                 Use ONLY the information in the file content to answer clearly.
 
                 File content:
@@ -65,15 +69,24 @@ public class LlmService {
         return ask(combinedPrompt);
     }
 
-    /*Helper to extract the assistant's message from the OpenAI-style JSON.*/
-    @SuppressWarnings("unchecked")
-    private String extractContent(Map response) {
-        try {
-            Object error = response.get("error");
-            if (error != null) {
-                return "Error from model: " + error;
-            }
+    /*Checking for errors related to connectivity.*/
+    private String extractContent(Map<String, Object> response) {
+        if (response == null) return "No response from LLM";
 
+        Object error = response.get("error");
+        if (error != null) {
+            String errorMessage = error.toString(); 
+            if (errorMessage.contains("429")) {
+                return "The AI service is currently rate-limited in this account (429)";
+            }
+            else if(errorMessage.contains("401")){
+                    return "Authentication error: Please check your OpenAI API key (401)";
+             }
+
+            return "Error from model: " + errorMessage;
+        }
+
+        try{
             Object choicesObj = response.get("choices");
             if (choicesObj instanceof java.util.List<?> list && !list.isEmpty()) {
                 Object first = list.get(0);
@@ -84,12 +97,16 @@ public class LlmService {
                         if (content != null) {
                             return content.toString();
                         }
+                    Object text =firstMap.get("text");
+                        if (text != null) {
+                        return text.toString();
+                            }
+                        }
                     }
-                }
+                }    
+            } catch (Exception e) {
+                return "Error parsing model response: " + e.getMessage();
             }
-            return "No response from model.";
-        } catch (Exception e) {
-            return "Error parsing model response: " + e.getMessage();
-        }
+        return "No valid response from model.";
     }
 }
