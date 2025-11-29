@@ -17,15 +17,11 @@ public class ChatController {
 
     //Small request/response records
 
-    public record ChatRequest(String message) {
-    }
-    public record ChatResponse(String reply) {
-    }
+    public record ChatRequest(String message) {}
+    public record ChatResponse(String reply) {}
 
-    public record AnalyseRequest(String question, String fileContent) {
-    }
-    public record AnalyzeResponse(String analysis) {
-    }
+    public record AnalyseRequest(String question, String fileContent) {}
+    public record AnalyzeResponse(String analysis) {}
 
     public record HealthResponse(String status) {
     }
