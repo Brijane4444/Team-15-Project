@@ -52,6 +52,7 @@
       endBtn.className = "prompt-btn";
       endBtn.onclick = () => {
         appendMessage('bot', "✅ Session ended. Thank you for using the Study Chatbot! Refresh the page to start a new one.");
+        resetFileSession(); //forgets the previous file
         disableInputs();
       };
 
@@ -61,7 +62,6 @@
       newUploadBtn.onclick = () => {
         appendMessage('bot', "📄 Great! Please upload your new document to continue.");
         resetFileSession(); //forgets the previous file
-        fileUploaded = false; // Reset so user can upload again
       };
 
       const buttonRow = document.createElement('div');
@@ -82,11 +82,10 @@
       if (file.type === "text/plain"){
         appendMessage('bot', `📄 Uploaded text file: ${file.name}. Would you like a summary or bullet-point notes? You can type "summary" or "bullet points", or click one of the buttons.`);
       } else if (file.type === "application/pdf"){
-        appendMessage('bot', `📄 Uploaded PDF file: ${file.name}. Full PDF text analysis is not fully implemented yet. please upload a .txt. version of your material`);
+        appendMessage('bot', `📄 Uploaded PDF file: ${file.name}. Would you like a summary or bullet-point notes? You can type "summary" or "bullet points", or click one of the buttons`);
       } else{
-        appendMessage('bot', `⚠️ Unsupported file type: ${file.type}. Please upload a .txt.`);
-        uploadedFile = null;
-        fileUploaded = false;
+        appendMessage('bot', `⚠️ Unsupported file type: ${file.type}. Please upload a .txt or .pdf file.`);
+        resetFileSession(); //forgets the previous file
       }
   });
   // ===== DARK MODE TOGGLE =====
@@ -135,14 +134,15 @@
     input.value = '';
 
     const lower =text.toLowerCase();
+
   // If txt file is uploaded and user asks summary or bullet point, handle accordingly to file workflow
-    if (fileUploaded && uploadedFile && uploadedFile.type === "text/plain") {
+    if (fileUploaded && uploadedFile && (uploadedFile.type === "text/plain" || uploadedFile.type === "application/pdf")) {
       if (lower.includes("summary") || lower.includes("summarize")){
         analyzFileWithQuestion("Summarize this content in a clear, concise way for a student.");
         return;
       }
       if (lower.includes("bullet") || lower.includes("points")){
-        analyzFileWithQuestion("Create bullet-point notes from this content for a student.");
+        analyzFileWithQuestion("Create bullet-point summary from this content for a student.");
         return;
       }
      //otherwise, normal chat to backend
@@ -150,7 +150,25 @@
     }
   }
 
-  // ===== HELPER -to read uploaded file as a text (for .txt files) =====
+  // ===== HELPER -to read uploaded file as a text (for .txt or .pdf files) =====
+
+  function readUploadedFileContent() {
+    if (!uploadedFile) {
+      return Promise.reject(new Error("No file uploaded"));
+    }
+
+    if (uploadedFile.type === "text/plain") {
+      return readUploadedFileAsText(uploadedFile);
+    }
+
+    if (uploadedFile.type === "application/pdf") {
+      return readPdfFileEncoded(uploadedFile);
+    }
+
+    return Promise.reject(new Error("Unsupported file type"));
+  }  
+
+  //for .txt files
   function readUploadedFileAsText() {
       return new Promise((resolve, reject) => {
         if (!uploadedFile) {
@@ -164,10 +182,38 @@
       });
   }
 
+  //helper: convert arraybuffer ->base64 string
+function arrayBufferToBase64(buffer) {
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+  }
+
+  //for .pdf files
+  function readPdfFileEncoded(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        let content = e.target.result; //binary string
+        const encoded = arrayBufferToBase64(content); //base64 encode
+        const combined ="[PDF Document Encoded]\n" + encoded;
+        resolve(combined);
+      };
+      reader.onerror = () => reject(new Error("Error reading PDF file"));
+
+      reader.readAsArrayBuffer(file); //changed from readAsBinaryString to avoid deprecation
+    });
+  }
+
   // ===== SECTION: FUNCTION analyzFileWithQuestion =====
   async function analyzFileWithQuestion(question) {
     try {
-      const fileContent = await readUploadedFileAsText();
+      const fileContent = await readUploadedFileContent();
       const combinedMessage = question + "\n\n" + fileContent;
       getReply(combinedMessage);
     } catch (error) {
@@ -196,9 +242,9 @@
       console.error('Error fetching reply:', error);
       appendMessage('bot', 'Error talking to the backend.');
     }
-  }  
+  }   
   // ===== SECTION: FUNCTION reset AND disableInputs =====
-  
+
   function resetFileSession() {
     uploadedFile = null;
     fileUploaded = false;
@@ -211,28 +257,3 @@
     summaryBtn.disabled = true;
     bulletBtn.disabled = true;
   }
-  //** Temporary placeholder reply until backend is implemented} 
-  //async function getReply(msg) {
-    //const apiKey = process.env.API_KEY; **this needs to be handled in the backend!
-   /* const apiLocation = "https://api.openai.com/v1/chat/completions";
-
-  try {
-    const reply = await fetch(apiLocation, {
-      headers: {Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json'}, 
-      method: 'POST',
-      body: JSON.stringify({model: "gpt-4.1-nano", messages: [{role:'user', content: msg}], max_tokens: 1000}),
-    });
-
-     const toReturn = await reply.json();
-     data = toReturn.choices[0].message.content;
-     console.log(data);
-     appendMessage('bot', data);
-     }
- catch(error){
-    return "An error has occured";
-    console.error("An error has occured", error);
-   }*
-
-   **/
-
-
