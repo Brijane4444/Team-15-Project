@@ -120,14 +120,15 @@ class Chatbot {
  static async readPdfFileAsText(file) {
    // Requires pdfjsLib loaded via <script> in index.html
    if (typeof pdfjsLib === 'undefined') {
-     return Promise.reject(
-       new Error('pdfjsLib is not available; cannot read PDF.')
-     );
+       throw new Error('PDF_SUPPORT_MISSING.');
    }
-   const arrayBuffer = await file.arrayBuffer();
-   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-   let extracted = '';
-   for (let i = 1; i <= pdf.numPages; i++) {
+   
+   try {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let extracted = '';
+   
+    for (let i = 1; i <= pdf.numPages; i++) {
      const page = await pdf.getPage(i);
      const textContent = await page.getTextContent();
      textContent.items.forEach(item => {
@@ -135,8 +136,16 @@ class Chatbot {
      });
      extracted += '\n\n';
    }
+   
+   if (!extracted.trim()) {
+     throw new Error('PDF_NO_TEXT_EXTRACTION.');
+   }
    return extracted;
- }
+} catch (error) {
+    console.error('PDF extraction error:', error);
+    throw new Error('PDF_EXTRACTION_FAILED.');
+    }
+}
  // summarization / bullet workflow
  static async analyzeFileWithQuestion(question) {
    try {
