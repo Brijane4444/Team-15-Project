@@ -154,10 +154,32 @@ class Chatbot {
      Chatbot.getReply(combinedMessage);
    } catch (error) {
      console.error('Error analyzing file:', error);
-     Messages.appendMessage(
-       'bot',
-       'Error reading the uploaded file. PDF support requires pdf.js.'
-     );
+
+     const isPdf= Chatbot.uploadedFile?.type === 'application/pdf';
+     const code =error.message || '';
+     if (isPdf) {
+       if (code ==='PDF_SUPPORT_MISSING.') {
+            Messages.appendMessage(
+            'bot',
+            'I tried to read your PDF, but PDF support is not fully available in this envionment. Please export your PDF as text and upload that instead.'
+        );
+       } else if (code ==='PDF_NO_TEXT_EXTRACTION.') {
+            Messages.appendMessage(
+            'bot',
+            'I could not extract any text from your PDF. This can happen with scanned documents or image-based PDFs. Please try a version with selectable text or convert it to .txt.'
+        );
+       } else if (code ==='PDF_EXTRACTION_FAILED.') {
+            Messages.appendMessage(
+            'bot',
+            'I had trouble reading this PDF. Some PDF use special fonts or formtas that are hard to process. Please try exporting it as .txt and upload that file instead.'
+        );
+       }
+   }else {
+       Messages.appendMessage(
+        'bot', 
+        'I had trouble reading this file. Please make sure it is a valid .txt file with readable text'
+        );
+    }
    }
  }
  // call backend /chat
