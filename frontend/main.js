@@ -9,40 +9,44 @@
   const fileInput = document.getElementById('file-input');
   const themeToggle = document.getElementById("theme-toggle");
 
-  // ===== SECTION: STATE VARIABLES =====
-  let uploadedFile = null; //holds the currently uploaded file
-  let fileUploaded = false; //flag to know if there is a file uploaded
-
-  const API_BASE_URL = 'http://localhost:8080';
-
   // ===== SECTION: WELCOME MESSAGES =====
+
   window.onload = () => {
-    appendMessage('bot', "👋 Welcome to AI Study Chatbot. I am here to help you ace your study material.");
+    Messages.appendMessage('bot', "👋 Welcome to AI Study Chatbot. I am here to help you ace your study material.");
     setTimeout(() => {
-      appendMessage('bot', "Please upload your material in .txt or .pdf format and choose one of the prompt buttons to get started!");
+      Messages.appendMessage('bot', "Please upload your material in .txt or .pdf format and choose one of the prompt buttons to get started!");
     }, 1000);
   };
 
   // ===== SECTION: EVENT LISTENERS =====
   // Send message on click or Enter
-  sendBtn.onclick = sendMessage;
-  input.addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
+  sendBtn.onclick = () => Chatbot.sendMessage();
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') Chatbot.sendMessage(); });
 
   // Prompt buttons set predefined messages
   summaryBtn.onclick = () => {
       input.value = "Summary.";
-      sendMessage();
+      Chatbot.sendMessage();
   };
   bulletBtn.onclick = () => {
       input.value = "bullet points.";
-      sendMessage();
+      Chatbot.sendMessage();
   };
+
+   // ===== DARK MODE TOGGLE =====
+  themeToggle.onclick = () =>
+    Settings.toggleMode();
+  
 
   //===== SECTION: FILE UPLOAD HANDLER =====
   fileInput.addEventListener('change', async (event) => {
       const file = event.target.files[0];
       if (!file) return;
+      Chatbot.handleFileSelected(file);
+  });
 
+ 
+/* 
   // If a document has already been uploaded, prompt user
     if (fileUploaded) {
       appendMessage('bot', "📚 You’ve already uploaded a document. Would you like to end this session or upload a new one?");
@@ -162,7 +166,7 @@
     }
 
     if (uploadedFile.type === "application/pdf") {
-      return readPdfFileEncoded(uploadedFile);
+      return readPdfFileAsText(uploadedFile);
     }
 
     return Promise.reject(new Error("Unsupported file type"));
@@ -194,7 +198,7 @@ function arrayBufferToBase64(buffer) {
   }
 
   //for .pdf files
-  function readPdfFileEncoded(file) {
+  /*function readPdfFileEncoded(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
 
@@ -208,6 +212,21 @@ function arrayBufferToBase64(buffer) {
 
       reader.readAsArrayBuffer(file); //changed from readAsBinaryString to avoid deprecation
     });
+  }
+  // ===== PDF READER USING pdfjsLib (copied from Brianna, cleaned & fixed) =====
+  async function readPdfFileAsText(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let extracted = "";
+    for (let i = 1; i <= pdf.numPages; i++) {
+       const page = await pdf.getPage(i);
+       const textContent = await page.getTextContent();
+       textContent.items.forEach(item => {
+           extracted += item.str + " ";
+       });
+       extracted += "\n\n";
+    }
+    return extracted;
   }
 
   // ===== SECTION: FUNCTION analyzFileWithQuestion =====
@@ -257,3 +276,4 @@ function arrayBufferToBase64(buffer) {
     summaryBtn.disabled = true;
     bulletBtn.disabled = true;
   }
+*/

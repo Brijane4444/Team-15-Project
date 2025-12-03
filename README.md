@@ -59,6 +59,7 @@ Handles:
 -returning AI responses to the frontend
 
 ====== BACKEND CLASS DIAGRAM =====
+
 +------------------------------------+
 |      AIBackendApplication          |
 +------------------------------------+
